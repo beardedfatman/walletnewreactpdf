@@ -1217,7 +1217,7 @@ export default async function generatePDF() {
 
       const text1 = `With a surplus saving of ${surplusSaving > 0 ? parseFloat(surplusSaving.toFixed(2)).toLocaleString() : 0} after deducting \nemergency savings, and surplus inflow of ${parseFloat(surplusInflow.toFixed(2)).toLocaleString()} per annum, You can get ${parseFloat(shortTermGoalsTotal.toFixed(2))} \nat a rate of ${(shortTermRate*100).toFixed(2).toLocaleString()}% per annum.`;
 	  
-      const stext2 = `You can successfully achieve your goals at $${B25} in surplus`
+      const stext2 = `You can successfully achieves your goals at $${B25.toFixed(2)} in surplus`
       const stext3 = `You are short of $${((shortTermGoalsTotal - shortTermGoalsInflationAdjusted) < 0 ? parseFloat((shortTermGoalsTotal - shortTermGoalsInflationAdjusted)).toLocaleString() : 0)} away from your goal.`
       y = drawText(investmentsRec, text1, x, y, 12, black, helvetica, 68);
       y = (shortTermGoalsTotal - shortTermGoalsInflationAdjusted) < 0 ? drawText(investmentsRec, stext3, x, y, 12, black, helvetica, 14) : drawText(investmentsRec, stext2, x, y, 12, black, helvetica, 14)
