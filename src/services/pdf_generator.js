@@ -4,9 +4,12 @@ import template from "../template/template.pdf";
 import { orange } from "@mui/material/colors";
 
 export default async function generatePDF() {
-  const { personal, employmentStatus, goals, netWorth, loanData, cashFlow, insurance, will, dependents } = getFormDataFromCookies();
+  const { personal, employmentStatus, goals, netWorth, loanData, cashFlow, insurance, will, dependents,retirementData } = getFormDataFromCookies();
 
   try {
+	  //declate global variable 
+	  var WeightedRateReturnPercent;
+    //console.log(JSON.stringify(retirementData))
     const existingPdfBytes = await fetch(template).then((res) => res.arrayBuffer());
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
     const pages = pdfDoc.getPages();
@@ -29,11 +32,18 @@ export default async function generatePDF() {
     const willPage2 = pages[26];
     const insuranceCalc = pages[27]
     const investmentsRec = pages[30]
+    const RetirementRec = pages[32]
+
 
     const fontSize = 12;
     const white = rgb(1, 1, 1);
     const black = rgb(0, 0, 0);
     const orange = rgb(0.97, 0.6, 0.1098);
+	
+
+	  var currentYear = new Date().getFullYear();
+      var dobYear = new Date(personal.dateOfBirth).getFullYear()
+      var currentAge = Number(currentYear) - Number(dobYear);
 
     /*const totalTangible = Number(netWorth.currentSavings) + Number(netWorth.currentValueOfFixedDeposits);
     const totalInvestmentAssets = Number(netWorth.valueOfCommodities) + Number(netWorth.valueOfOtherInvestments) + Number(netWorth.valueOfCryptocurrencies) + Number(netWorth.valueOfProperties) + Number(netWorth.valueOfInsurancePolicies) + Number(netWorth.valueOfUnitTrusts) + Number(netWorth.valueOfBonds) + Number(netWorth.valueOfStocks);
@@ -57,7 +67,8 @@ export default async function generatePDF() {
         Number(netWorth.valueOfUnitTrusts || 0) +
         Number(netWorth.valueOfBonds || 0) +
         Number(netWorth.valueOfStocks || 0);
-
+		
+		console.log("currentAge"+currentAge+"totalInvestmentAssets"+totalInvestmentAssets)
     
 
       const totalAccount =
@@ -670,7 +681,10 @@ export default async function generatePDF() {
       y = drawText(assetAllocationPage, `${totalWRR.toFixed(2)}%`, x, y, 9, white, helveticaBold, lineSpacing)
       x = 260
       y = 195
-      drawText(assetAllocationPage, `${totalWRR.toFixed(2)}%`, x, y, 20, black, helveticaBold)
+      drawText(assetAllocationPage, `${totalWRR.toFixed(2)}%`, x, y, 20, black, helveticaBold);
+	  
+	   WeightedRateReturnPercent=totalWRR;
+
 
     }
 
@@ -951,6 +965,19 @@ export default async function generatePDF() {
     };
 
     const drawWitnessSection = (page, font, boldFont, fontSize = 12) => {
+
+
+        // Fill in dynamic data
+        const clientName = personal.name + " " + personal.lastname || "Client Name";
+        const clientNRIC = will.nric || "NRIC No.";
+        const clientAddress = personal.address || "Address";
+        // const executors = will.executors || [];
+        // const guardians = will.guardians || [];
+        // const beneficiaries = will.beneficiaries || [];
+        const witnesses = will.witnesses || [];
+  
+      console.log("witnesses",witnesses);
+
       const today = new Date();
       const formattedDate = `${today.getDate()}/${today.getMonth()}/${today.getFullYear()}:${today.getHours()}:${today.getMinutes()}${today.getHours() >= 12 ? 'pm' : 'am'}`;
 
@@ -982,7 +1009,26 @@ export default async function generatePDF() {
       y = drawText("SIGNED BY the abovementioned as His LAST WILL in the presence of us present at the same time", x, y - 20);
       y = drawText("who at his request in his presence and in the presence of each other have here unto subscribed", x, y);
       y = drawText("out names as witnesses.", x, y);
+   
+      drawText(clientName, x+70, y-285, fontSize, true);
+      drawText(clientNRIC, x+70, y-308, fontSize, true);
+      
+      //witnesses
+      for(let i=0; i<witnesses.length; i++){
+        let xvar=(i>0) ? (x+275) : 0;
+      drawText(witnesses[i].name, x+70+xvar, y-405, fontSize, true);
+      drawText(witnesses[i].nric, x+70+xvar, y-430, fontSize, true);
 
+      const adressIdexes = splitIntoChunks("131/362 begum purwa kanour near nc memorial sco pincode 203987");
+      for(let ik=0; ik<adressIdexes.length; ik++){
+       let z= Number(y-450-ik*20);
+        drawText(adressIdexes[ik], x+70+xvar, z , fontSize, true);
+      }
+     
+      
+    }
+      // y = drawText("danishaa", x + 250, y, fontSize, true);
+      
       // drawText("WITNESS", x, y, fontSize, true);
       // y = drawText("WITNESS", x + 250, y, fontSize, true);
 
@@ -1012,6 +1058,20 @@ export default async function generatePDF() {
       // drawText("_______________________", x + 350, y)
       // y = drawText("_______________________", x + 80, y)
 
+
+      function splitIntoChunks(text, wordsPerChunk = 4) {
+        // Split the text into an array of words
+        const words = text.split(/\s+/);
+        const chunks = [];
+    
+        for (let i = 0; i < words.length; i += wordsPerChunk) {
+            // Join words in chunks of specified size and push to array
+            chunks.push(words.slice(i, i + wordsPerChunk).join(" "));
+        }
+    
+        return chunks;
+    }
+    
     };
 
     const drawInsuranceCalc = () => {
@@ -1128,7 +1188,7 @@ export default async function generatePDF() {
 	var actualamountneed=[];
      const drawInvestmentsRec = () => {
       
-	  debugger;
+	
       const currentYear = new Date().getFullYear();
       const dobYear = new Date(personal.dateOfBirth).getFullYear()
       const currentAge = Number(currentYear) - Number(dobYear);
@@ -1216,8 +1276,7 @@ export default async function generatePDF() {
 	  const  B25=((shortTermGoalsTotal - shortTermGoalsInflationAdjusted) > 0 ? parseFloat((shortTermGoalsTotal - shortTermGoalsInflationAdjusted)) : 0);
 
       const text1 = `With a surplus saving of ${surplusSaving > 0 ? parseFloat(surplusSaving.toFixed(2)).toLocaleString() : 0} after deducting \nemergency savings, and surplus inflow of ${parseFloat(surplusInflow.toFixed(2)).toLocaleString()} per annum, You can get ${parseFloat(shortTermGoalsTotal.toFixed(2))} \nat a rate of ${(shortTermRate*100).toFixed(2).toLocaleString()}% per annum.`;
-	  
-      const stext2 = `You can successfully achieves your goals at $${B25.toFixed(2)} in surplus`
+      const stext2 = `You can successfully achieve your goals at $${B25} in surplus`
       const stext3 = `You are short of $${((shortTermGoalsTotal - shortTermGoalsInflationAdjusted) < 0 ? parseFloat((shortTermGoalsTotal - shortTermGoalsInflationAdjusted)).toLocaleString() : 0)} away from your goal.`
       y = drawText(investmentsRec, text1, x, y, 12, black, helvetica, 68);
       y = (shortTermGoalsTotal - shortTermGoalsInflationAdjusted) < 0 ? drawText(investmentsRec, stext3, x, y, 12, black, helvetica, 14) : drawText(investmentsRec, stext2, x, y, 12, black, helvetica, 14)
@@ -1338,6 +1397,48 @@ export default async function generatePDF() {
     }
 
 
+ 
+ const drawRetirementRec = () => {
+	 let y = 730
+   let x = 30
+    
+  console.log(retirementData.monthlyPayoutCPF);
+
+console.log(JSON.stringify(retirementData));
+const currentValue = parseFloat(retirementData.idealRetirementIncomeMonthly); // Current income at age 65
+const inflationRate = 0.03; // 3% inflation rate
+const yearsUntilRetirement = 35; // Years until retirement
+//WeightedRateReturnPercent
+// Calculate the future value
+const IncomeNeededAtAge = currentValue * Math.pow((1 + inflationRate), yearsUntilRetirement);
+
+// Define the variables
+let totalInvestments = totalInvestmentAssets; // Example: total investments
+let weightedRateOfReturn = WeightedRateReturnPercent/100; // Example: weighted rate of return (5% or 0.05)
+let retirementAge = 65; // Example: retirement age
+
+
+// Calculate future value of investments at retirement
+let ProjectedInvestmentAtAge = totalInvestments * Math.pow((1 + weightedRateOfReturn), (retirementAge - currentAge));
+
+
+let FinalAmountAchieved=IncomeNeededAtAge-((ProjectedInvestmentAtAge/240) +retirementData.monthlyPayoutCPF);
+let FinalAmountAchievedText='';
+if(FinalAmountAchieved < 0){
+FinalAmountAchievedText=`You are facing shortfall of $${FinalAmountAchieved.toFixed(2)}`;
+}
+else{
+	FinalAmountAchievedText=`You are looking at surplus of $${FinalAmountAchieved.toFixed(2)}`;
+
+}
+
+let monthlyPayoutCPF=parseFloat(retirementData.monthlyPayoutCPF);
+  // Draw static text for short-term goal
+ // drawText(RetirementRec, "Short Term Goals", x, y, 18, black, helveticaBold, 25);
+  drawText(RetirementRec, `Income needed at age 65 $${IncomeNeededAtAge.toFixed(2)} based on 3% inflation.Proejcted investment at age 65 ${'\n'} $${ProjectedInvestmentAtAge.toFixed(2)}  Weighted rate of return at age 65.${'\n'} Projected monthly income from investments $${(ProjectedInvestmentAtAge/240).toFixed(2)} at 5% dividend rate.${'\n'} From the assigned values Projected monthly income from CPF $${monthlyPayoutCPF.toFixed(2)} ${'\n'} ${FinalAmountAchievedText} `, x, y, 12, black, helvetica, 68);
+
+  }
+
 console.log("TermGoalGraphArray",TermGoalGraphArray);
 
     drawPersonalInfo();
@@ -1355,7 +1456,7 @@ console.log("TermGoalGraphArray",TermGoalGraphArray);
     drawWitnessSection(willPage2, helvetica, helveticaBold, 12)
     drawInsuranceCalc();
     drawInvestmentsRec();
-
+	drawRetirementRec();
 
 
 console.log("TermGoalGraphArray",TermGoalGraphArray);

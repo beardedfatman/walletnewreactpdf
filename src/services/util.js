@@ -11,7 +11,7 @@ export default function getFormDataFromCookies() {
   const insuranceFormData = Cookies.get("insuranceFormData");
   const willFormData = Cookies.get("WillFormData");
   const dependentsFormData = Cookies.get("dependentsFormData");
-
+  const retirementData = Cookies.get("retirementData");
   console.log(centralProvidentFundsFormData);
 
   return {
@@ -35,5 +35,8 @@ export default function getFormDataFromCookies() {
     insurance: insuranceFormData ? JSON.parse(decodeURIComponent(insuranceFormData)) : {},
     will: willFormData ? JSON.parse(decodeURIComponent(willFormData)) : {},
     dependents: dependentsFormData ? JSON.parse(decodeURIComponent(dependentsFormData)) : {},
+    retirementData: retirementData ? JSON.parse(decodeURIComponent(retirementData)) : {},
+
+    
   };
 }

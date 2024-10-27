@@ -14,11 +14,15 @@ const RetirementForm = ({ onBack }) => {
     initialValues: {
       retirementAge: "",
       monthlyNeed: "",
+      idealRetirementIncomeMonthly:"",
+      monthlyPayoutCPF:""
       // needFinancialAdvisor: "No",
     },
     validationSchema: Yup.object({
       retirementAge: Yup.string().required("Retirement Age is required"),
       monthlyNeed: Yup.string().required("Monthly Need is required"),
+      idealRetirementIncomeMonthly: Yup.string().required("Ideal Retirement Income (Monthly) Need is required"),
+      monthlyPayoutCPF: Yup.string().required("Monthly Payout CPF is required"),
       // needFinancialAdvisor: Yup.string().required("Value is required"),
     }),
     onSubmit: (values) => {
@@ -45,6 +49,8 @@ const RetirementForm = ({ onBack }) => {
     const dependentsData = JSON.parse(Cookies.get("dependentsFormData"));
     const retirementData = JSON.parse(Cookies.get("retirementData"));
     const willData = JSON.parse(Cookies.get("WillFormData"));
+
+    console.log("retirementData"+JSON.stringify(retirementData))
 
     let arr = [];
     let personalDataKeys = [
@@ -468,6 +474,43 @@ const RetirementForm = ({ onBack }) => {
             helperText={formik.touched.monthlyNeed && formik.errors.monthlyNeed}
           />
         </Grid>
+
+        <Grid item xs={12} >
+          <CustomTextField
+            fullWidth
+            name="idealRetirementIncomeMonthly"
+            label="Ideal Retirement Income Monthly"
+            type="number"
+            value={formik.values.idealRetirementIncomeMonthly}
+            onChange={(e) => handleFieldChange("idealRetirementIncomeMonthly", e.target.value)}
+            InputProps={{
+              style: { color: "#ffb942" },
+            }}
+            error={
+              formik.touched.idealRetirementIncomeMonthly && Boolean(formik.errors.idealRetirementIncomeMonthly)
+            }
+            helperText={formik.touched.idealRetirementIncomeMonthly && formik.errors.idealRetirementIncomeMonthly}
+          />
+        </Grid>
+
+        <Grid item xs={12} >
+          <CustomTextField
+            fullWidth
+            name="monthlyPayoutCPF"
+            label="Monthly Payout CPF"
+            type="number"
+            value={formik.values.monthlyPayoutCPF}
+            onChange={(e) => handleFieldChange("monthlyPayoutCPF", e.target.value)}
+            InputProps={{
+              style: { color: "#ffb942" },
+            }}
+            error={
+              formik.touched.monthlyPayoutCPF && Boolean(formik.errors.monthlyPayoutCPF)
+            }
+            helperText={formik.touched.monthlyPayoutCPF && formik.errors.monthlyPayoutCPF}
+          />
+        </Grid>
+        
         {/* <Grid item xs={12}>
           <FormControl fullWidth required>
             <CustomInputLabel>Need Financial Advisor</CustomInputLabel>
