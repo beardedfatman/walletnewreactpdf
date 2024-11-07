@@ -9,7 +9,7 @@ export default async function generatePDF() {
   try {
 	  //declate global variable 
 	  var WeightedRateReturnPercent;
-    //console.log(JSON.stringify(retirementData))
+    console.log(JSON.stringify(retirementData))
     const existingPdfBytes = await fetch(template).then((res) => res.arrayBuffer());
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
     const pages = pdfDoc.getPages();
@@ -1019,7 +1019,7 @@ export default async function generatePDF() {
       drawText(witnesses[i].name, x+70+xvar, y-405, fontSize, true);
       drawText(witnesses[i].nric, x+70+xvar, y-430, fontSize, true);
 
-      const adressIdexes = splitIntoChunks("131/362 begum purwa kanour near nc memorial sco pincode 203987");
+      const adressIdexes = splitIntoChunks(witnesses[i].address);
       for(let ik=0; ik<adressIdexes.length; ik++){
        let z= Number(y-450-ik*20);
         drawText(adressIdexes[ik], x+70+xvar, z , fontSize, true);
@@ -1080,7 +1080,14 @@ export default async function generatePDF() {
       const growthRate = 0.03; // 3% annual growth rate
       const targetAge = 25; // Assuming the target age for educational cost
 
-
+      function returnSetValorZero(value){
+        if(value>=0){
+          return value;
+        }
+        else{
+          return 0;
+        }
+      }
       function calculateInflationAdjustedSum(totalSumNeeded, growthRate, yearsUntilIndependent, currentAge) {
         const yearsRemaining = yearsUntilIndependent - currentAge;
         const growthMultiplier = 1 + growthRate;
@@ -1100,7 +1107,8 @@ export default async function generatePDF() {
         const dependentDateOfBirth = new Date(dependent.dependentDateBirth);
         const currentAge = currentYear - dependentDateOfBirth.getFullYear();
         const inflationAdjustedSum = calculateInflationAdjustedSum(dependent.dependentAnnualSpending, 0.03, dependent.years, currentAge);
-
+        console.log(inflationAdjustedSum);
+        
         let educationalCost = null;
         if (currentAge < 18) {
           educationalCost = calculateEducationalCost(initialCost, growthRate, targetAge, currentAge);
@@ -1114,10 +1122,10 @@ export default async function generatePDF() {
 
       });
 
-
+      debugger;
       const totalInflationAdjustedSum = dep.reduce((acc, curr) => Number(acc) + Number(curr.inflationAdjustedSum), 0);
       const totalEducationalCost = dep.reduce((acc, curr) => Number(acc) + Number(curr.educationalCost), 0);
-      const loans = Number(loanData.remainingHouseLoan) + Number(loanData.remainingCreditCardsLoan) + Number(loanData.remainingPersonalDebitLoan) + Number(loanData.remainingRenovationLoan) + Number(loanData.remainingStudyLoan) + Number(loanData.remainingVehicleLoan);
+      const loans = Number(returnSetValorZero(loanData.remainingHouseLoan)) + Number(returnSetValorZero(loanData.remainingCreditCardsLoan)) + Number(returnSetValorZero(loanData.remainingPersonalDebitLoan)) + Number(returnSetValorZero(loanData.remainingRenovationLoan)) + Number(returnSetValorZero(loanData.remainingStudyLoan)) + Number(returnSetValorZero(loanData.remainingVehicleLoan));
 
       const totalAll = totalInflationAdjustedSum + totalEducationalCost + loans;
 
@@ -1363,7 +1371,7 @@ export default async function generatePDF() {
 	 ages=createRange(currentAge, currentAge+LYearsToReach,12);
 	
 	
-	actualamountneed=createRange(parseInt(goals.shortTermGoals[0].amount), parseInt(goals.longTermGoals[0].amount),12);
+	actualamountneed=createRange(0, parseInt(goals.longTermGoals[0].amount),12);
 	 
 	 
 		ages.forEach(function(value, index, array){
@@ -1399,12 +1407,14 @@ export default async function generatePDF() {
 
  
  const drawRetirementRec = () => {
+
+
 	 let y = 730
    let x = 30
-    
-  console.log(retirementData.monthlyPayoutCPF);
 
-console.log(JSON.stringify(retirementData));
+
+//console.log(JSON.stringify(retirementData));
+
 const currentValue = parseFloat(retirementData.idealRetirementIncomeMonthly); // Current income at age 65
 const inflationRate = 0.03; // 3% inflation rate
 const yearsUntilRetirement = 35; // Years until retirement
@@ -1435,7 +1445,14 @@ else{
 let monthlyPayoutCPF=parseFloat(retirementData.monthlyPayoutCPF);
   // Draw static text for short-term goal
  // drawText(RetirementRec, "Short Term Goals", x, y, 18, black, helveticaBold, 25);
+ if(retirementData.IsPlanForRetirement=='Yes'){
   drawText(RetirementRec, `Income needed at age 65 $${IncomeNeededAtAge.toFixed(2)} based on 3% inflation.Proejcted investment at age 65 ${'\n'} $${ProjectedInvestmentAtAge.toFixed(2)}  Weighted rate of return at age 65.${'\n'} Projected monthly income from investments $${(ProjectedInvestmentAtAge/240).toFixed(2)} at 5% dividend rate.${'\n'} From the assigned values Projected monthly income from CPF $${monthlyPayoutCPF.toFixed(2)} ${'\n'} ${FinalAmountAchievedText} `, x, y, 12, black, helvetica, 68);
+
+ }
+ else{
+  drawText(RetirementRec, `No Retirement Plan `, x, y, 12, black, helvetica, 68);
+
+ }
 
   }
 
@@ -1462,140 +1479,164 @@ console.log("TermGoalGraphArray",TermGoalGraphArray);
 console.log("TermGoalGraphArray",TermGoalGraphArray);
 
 console.log("actualamountneed",actualamountneed);
-
+console.log("goals",goals)
 	
-	const InvestmentGraph={
-			  "type": "line",
-			  "data": {
-				"labels": ages,
-				"datasets": [
-				  {
-					"label": "Trajectory",
-					"data":TermGoalGraphArray,
-					"fill": true,
-					"backgroundColor": "rgba(255, 204, 0, 0.5)",
-					"borderColor": "rgba(255, 204, 0, 1)",
-					"borderWidth": 2,
-					"pointBackgroundColor": "rgba(255, 204, 0, 1)"
-				  },
-				  {
-					"label": "Actual Amount Needed",
-					"data":actualamountneed,
-					"fill": true,
-					"backgroundColor": "rgba(0, 0, 0, 0.5)",
-					"borderColor": "rgba(0, 0, 0, 1)",
-					"borderWidth": 2,
-					"pointBackgroundColor": "rgba(0, 0, 0, 1)"
-				  }
-				]
-			  },
-			  "options": {
-				"scales": {
-				  "x": {
-					"title": {
-					  "display": true,
-					  "text": "Amount"
-					}
-				  },
-				  "y": {
-					"title": {
-					  "display": true,
-					  "text": "Age"
-					},
-					"min": 0,
-					"max": 100000
-				  }
-				},
-				"plugins": {
-				  "legend": {
-					"position": "top"
-				  },
-				  "tooltip": {
-					"callbacks": {
-					  "label": function(context) {
-						return context.dataset.label + ': ' + context.raw;
-					  }
-					}
-				  },
-				  "annotation": {
-					"annotations": {
-					  "box1": {
-						"type": "box",
-						"xMin": "33",
-						"xMax": "35",
-						"backgroundColor": "rgba(255, 204, 0, 0.1)",
-						"label": {
-						  "content": "12000",
-						  "enabled": true,
-						  "position": "start"
-						}
-					  },
-					  "box2": {
-						"type": "box",
-						"xMin": "35",
-						"xMax": "39",
-						"backgroundColor": "rgba(0, 0, 0, 0.1)",
-						"label": {
-						  "content": "30000",
-						  "enabled": true,
-						  "position": "start"
-						}
-					  },
-					  "box3": {
-						"type": "box",
-						"xMin": "39",
-						"xMax": "41",
-						"backgroundColor": "rgba(255, 204, 0, 0.1)",
-						"label": {
-						  "content": "60000",
-						  "enabled": true,
-						  "position": "start"
-						}
-					  },
-					  "box4": {
-						"type": "box",
-						"xMin": "43",
-						"xMax": "45",
-						"backgroundColor": "rgba(0, 0, 0, 0.1)",
-						"label": {
-						  "content": "45000",
-						  "enabled": true,
-						  "position": "start"
-						}
-					  },
-					  "box5": {
-						"type": "box",
-						"xMin": "45",
-						"xMax": "49",
-						"backgroundColor": "rgba(153, 102, 255, 0.1)",
-						"label": {
-						  "content": "100000",
-						  "enabled": true,
-						  "position": "start"
-						}
-					  }
-					}
-				  }
-				}
-			  }
-			};
-		const jsonString = JSON.stringify(InvestmentGraph);
+const InvestmentGraph = {
+  "type": "line",
+  "data": {
+    // Use unique labels for the x-axis
+    "labels": [...new Set(ages)],  // Ensures unique labels
+    "datasets": [
+      {
+        "label": "Trajectory",
+        "data": TermGoalGraphArray,
+        "fill": true,
+        "backgroundColor": "rgba(255, 204, 0, 0.5)",
+        "borderColor": "rgba(255, 204, 0, 1)",
+        "borderWidth": 2,
+        "pointBackgroundColor": "rgba(255, 204, 0, 1)"
+      },
+      {
+        "label": "Actual Amount Needed",
+        "data": actualamountneed,
+        "fill": true,
+        "backgroundColor": "rgba(0, 0, 0, 0.5)",
+        "borderColor": "rgba(0, 0, 0, 1)",
+        "borderWidth": 2,
+        "pointBackgroundColor": "rgba(0, 0, 0, 1)"
+      }
+    ]
+  },
+  "options": {
+    "scales": {
+      "x": {
+        "title": {
+          "display": true,
+          "text": "Amount"
+        },
+        // Avoid overlapping by setting `stacked` to false
+        "stacked": false
+      },
+      "y": {
+        "title": {
+          "display": true,
+          "text": "Age"
+        },
+        "min": 0,
+        "max": 100000
+      }
+    },
+    "plugins": {
+      "datalabels": {
+        "display": true,
+        "align": "top",
+        "backgroundColor": "#ff3b3b",
+        "borderRadius": 4,
+        "color": "white",
+        "font": {
+          "weight": "bold"
+        },
+        "formatter": function(value, context) {
+          const index = context.dataIndex;
+          console.log("Indexes value " + value);
+          if (index === 4) return "Short-term Goal Amount Needed";
+          if (index === 7) return "Mid-term Goal Amount Needed";
+          if (index === 10) return "Long-term Goal Amount Needed";
+          return null;
+        }
+      },
+      "legend": {
+        "position": "top"
+      },
+      "tooltip": {
+        "callbacks": {
+          "label": function(context) {
+            return context.dataset.label + ': ' + context.raw;
+          }
+        }
+      },
+      "annotation": {
+        "annotations": {
+          "box1": {
+            "type": "box",
+            "xMin": "33",
+            "xMax": "35",
+            "backgroundColor": "rgba(255, 204, 0, 0.1)",
+            "label": {
+              "content": "12000",
+              "enabled": true,
+              "position": "start"
+            }
+          },
+          "box2": {
+            "type": "box",
+            "xMin": "35",
+            "xMax": "39",
+            "backgroundColor": "rgba(0, 0, 0, 0.1)",
+            "label": {
+              "content": "30000",
+              "enabled": true,
+              "position": "start"
+            }
+          },
+          "box3": {
+            "type": "box",
+            "xMin": "39",
+            "xMax": "41",
+            "backgroundColor": "rgba(255, 204, 0, 0.1)",
+            "label": {
+              "content": "60000",
+              "enabled": true,
+              "position": "start"
+            }
+          },
+          "box4": {
+            "type": "box",
+            "xMin": "43",
+            "xMax": "45",
+            "backgroundColor": "rgba(0, 0, 0, 0.1)",
+            "label": {
+              "content": "45000",
+              "enabled": true,
+              "position": "start"
+            }
+          },
+          "box5": {
+            "type": "box",
+            "xMin": "45",
+            "xMax": "49",
+            "backgroundColor": "rgba(153, 102, 255, 0.1)",
+            "label": {
+              "content": "100000",
+              "enabled": true,
+              "position": "start"
+            }
+          }
+        }
+      }
+    }
+  }
+};
 
-		// Encode URI component
-		const encodedUri = encodeURIComponent(jsonString);
+console.log(InvestmentGraph);
+const jsonString = JSON.stringify(InvestmentGraph);
 
-		console.log(encodedUri);
-		  const imageUrl2 = `https://quickchart.io/chart?v=2.9.4&c=`+encodedUri;
-			const chartImg2 = await fetch(imageUrl2).then((res) => res.arrayBuffer());
+// Encode URI component
+const encodedUri = encodeURIComponent(jsonString);
 
-			const chartImage2 = await pdfDoc.embedPng(chartImg2);
+console.log(encodedUri);
+const imageUrl2 = `https://quickchart.io/chart?v=2.9.4&c=` + encodedUri;
+const chartImg2 = await fetch(imageUrl2).then((res) => res.arrayBuffer());
 
-			investmentsRec.drawImage(chartImage2, {
-			  x: 20,
-			  y: 50,
-			  width: 530,
-			  height: 250,
-			});
+const chartImage2 = await pdfDoc.embedPng(chartImg2);
+
+investmentsRec.drawImage(chartImage2, {
+  x: 20,
+  y: 50,
+  width: 530,
+  height: 250,
+});
+
 		   /* end Investment calc */
 			
 	

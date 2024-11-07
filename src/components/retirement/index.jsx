@@ -1,13 +1,19 @@
 import React, { useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Typography } from "@mui/material";
+import { Typography,FormControl } from "@mui/material";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import { Box } from "@mui/material";
-import { CustomTextField } from "../Fields";
 import Cookies from "js-cookie";
 import axios from "axios";
+import {
+  CustomTextField,
+  CustomDivider,
+  CustomInputLabel,
+  CustomSelect,
+  CustomMenuItem,
+} from "../Fields"; // You can customize this import as needed
 
 const RetirementForm = ({ onBack }) => {
   const formik = useFormik({
@@ -15,15 +21,15 @@ const RetirementForm = ({ onBack }) => {
       retirementAge: "",
       monthlyNeed: "",
       idealRetirementIncomeMonthly:"",
-      monthlyPayoutCPF:""
-      // needFinancialAdvisor: "No",
+      monthlyPayoutCPF:"",
+      IsPlanForRetirement: "Yes",
     },
     validationSchema: Yup.object({
       retirementAge: Yup.string().required("Retirement Age is required"),
       monthlyNeed: Yup.string().required("Monthly Need is required"),
       idealRetirementIncomeMonthly: Yup.string().required("Ideal Retirement Income (Monthly) Need is required"),
       monthlyPayoutCPF: Yup.string().required("Monthly Payout CPF is required"),
-      // needFinancialAdvisor: Yup.string().required("Value is required"),
+      IsPlanForRetirement: Yup.string().required("Value is required"),
     }),
     onSubmit: (values) => {
       // Save form data to cookies
@@ -435,6 +441,33 @@ const RetirementForm = ({ onBack }) => {
         Retirement Planning
       </Typography>
       <Grid container spacing={2}>
+
+           
+      <Grid item xs={12}>
+          <FormControl fullWidth required>
+            <CustomInputLabel>Would you like to plan for your retirement?</CustomInputLabel>
+            <CustomSelect
+              name="IsPlanForRetirement"
+              label="Would you like to plan for your retirement?"
+              value={formik.values.IsPlanForRetirement}
+              onChange={(e) =>
+                handleFieldChange("IsPlanForRetirement", e.target.value)
+              }
+              MenuProps={{
+                PaperProps: {
+                  style: { background: "#292829" },
+                },
+              }}
+            >
+              <CustomMenuItem value="Yes">Yes</CustomMenuItem>
+              <CustomMenuItem value="No">No</CustomMenuItem>
+            </CustomSelect>
+          </FormControl>
+        </Grid>
+
+        {formik.values.IsPlanForRetirement === "Yes" && (
+        <>     
+
         <Grid item xs={12}>
           <CustomTextField
             fullWidth
@@ -510,28 +543,10 @@ const RetirementForm = ({ onBack }) => {
             helperText={formik.touched.monthlyPayoutCPF && formik.errors.monthlyPayoutCPF}
           />
         </Grid>
-        
-        {/* <Grid item xs={12}>
-          <FormControl fullWidth required>
-            <CustomInputLabel>Need Financial Advisor</CustomInputLabel>
-            <CustomSelect
-              name="needFinancialAdvisor"
-              label="Need Financial Advisor"
-              value={formik.values.needFinancialAdvisor}
-              onChange={(e) =>
-                handleFieldChange("needFinancialAdvisor", e.target.value)
-              }
-              MenuProps={{
-                PaperProps: {
-                  style: { background: "#292829" },
-                },
-              }}
-            >
-              <CustomMenuItem value="Yes">Yes</CustomMenuItem>
-              <CustomMenuItem value="No">No</CustomMenuItem>
-            </CustomSelect>
-          </FormControl>
-        </Grid> */}
+     
+        </>
+      )}
+
       </Grid>
       <Box display="flex" justifyContent="center">
         <Button
